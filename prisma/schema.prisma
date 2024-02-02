@@ -27,6 +27,7 @@ model Lecture {
   CheckIn   CheckIn[]
   Group     Group?    @relation(fields: [groupId], references: [id])
   groupId   String?
+  startTime DateTime
 }
 
 model CheckIn {

@@ -4,11 +4,13 @@ export default {
   theme: {
     extend: {
       colors: {
-        "xublue": "#20AFFA",
-        "xublack": "#141414",
+        xublue: "#20AFFA",
+        xublack: "#141414",
       },
     },
+    fontFamily: {
+      sans: ["Noto Sans", "sans-serif"],
+    },
+    plugins: [],
   },
-  plugins: [],
-}
-
+};
