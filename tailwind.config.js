@@ -2,7 +2,12 @@
 export default {
   content: [],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        "xublue": "#20AFFA",
+        "xublack": "#141414",
+      },
+    },
   },
   plugins: [],
 }
