@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id        String    @id @default(uuid())
+  name      String?
+  password  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  CheckIn   CheckIn[]
+  Group     Group?    @relation(fields: [groupId], references: [id])
+  groupId   String?
+}
+
+model Lecture {
+  id        String    @id @default(uuid())
+  name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  CheckIn   CheckIn[]
+  Group     Group?    @relation(fields: [groupId], references: [id])
+  groupId   String?
+}
+
+model CheckIn {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  latitude  Float    @db.DoublePrecision
+  longitude Float    @db.DoublePrecision
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  valid     Boolean  @default(false)
+  lectureId String?
+  lecture   Lecture? @relation(fields: [lectureId], references: [id])
+}
+
+model Group {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  members     User[]
+  lectures    Lecture[]
+}
