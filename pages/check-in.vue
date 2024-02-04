@@ -7,7 +7,7 @@
       <p v-show="alreadyCheckedIn">You have checked in for today!</p>
       <div v-if="lecture">
         <p>Class: {{ lecture.name }}</p>
-        <p>Starting at: {{ lecture.time }}</p>
+        <p>Starting at: {{ lecture.startTime }}</p>
       </div>
       <div v-else>
         <p>
@@ -25,6 +25,8 @@
       </button>
       <SuccessCheck v-show="alreadyCheckedIn" />
     </div>
+
+    <!-- Create Lecture Modal-->
     <div
       v-if="showModal"
       class="fixed inset-0 w-full h-full overflow-y-auto bg-black bg-opacity-50">
@@ -52,7 +54,7 @@
               <button
                 type="button"
                 class="flex items-center px-4 py-2 mx-auto my-2 text-white rounded-md bg-xublack hover:bg-slate-800 gap-x-2"
-                @click="createLecture"
+                @click="createLectureAndCheckIn"
                 v-show="!alreadyCheckedIn">
                 <span class="material-symbols-outlined"> done </span>
                 Check-In
@@ -73,7 +75,7 @@
 <script setup>
   const alreadyCheckedIn = ref(false);
   const showModal = ref(false);
-  const lecture = ref();
+  const lecture = ref(null);
 
   const lectureName = ref("");
   const startTime = ref("");
@@ -81,11 +83,27 @@
   const displayError = ref(false);
   const errorMessage = ref("Please fill in all fields.");
 
-  function showError() {
-    displayError.value = true;
+  // Check if there is a lecture for today and this group
+  const lectureDateObj = new Date();
+  const lectureDateStr = lectureDateObj.toISOString().split("T")[0];
+  const { data } = await useFetch("/api/lecture", {
+    method: "GET",
+    query: {
+      lectureDate: lectureDateStr,
+      groupId: 1, //TODO: get the group id from the user
+    },
+  });
+
+  const lectureFromDB = data.value.body;
+  if (lectureFromDB) {
+    lecture.value = await JSON.parse(lectureFromDB);
+    lecture.value.startTime = new Date(
+      lecture.value.startTime
+    ).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
   }
 
-  async function createLecture() {
+  // CheckIn if there is no lecture
+  async function createLectureAndCheckIn() {
     if (!lectureName.value || !startTime.value) {
       displayError.value = true;
       errorMessage.value = "Please fill in all fields.";
@@ -93,23 +111,58 @@
     }
     displayError.value = false;
 
+    // transform the time to a timestamp
     const currentDate = new Date();
     const [hours, minutes] = startTime.value.split(":").map(Number);
     currentDate.setHours(hours, minutes, 0, 0);
     const timestamp = currentDate;
 
     try {
-      const { data: lectureFromDB } = await $fetch("/api/lecture", {
+      const { body: lectureFromDB } = await $fetch("/api/lecture", {
         method: "PUT",
         body: JSON.stringify({
           lectureName: lectureName.value,
           startTime: timestamp,
-          groupId: 1,
+          groupId: 1, //TODO: get the group id from the user
         }),
       });
-      console.log(lectureFromDB);
-      lecture.value = lectureFromDB;
 
+      // Set the lecture value to the lecture from the database
+      lecture.value = await JSON.parse(lectureFromDB);
+
+      // Format the date to a readable string
+      lecture.value.startTime = new Date(
+        lecture.value.startTime
+      ).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+
+      // Check in the user
+      const { body: checkIn } = await $fetch("/api/check-in", {
+        method: "PUT",
+        body: JSON.stringify({
+          lectureId: lecture.value.id,
+          userId: 1, //TODO: get the user id from the user
+          //TODO: Add Location later
+        }),
+      });
+
+      showModal.value = false;
+      alreadyCheckedIn.value = true;
+    } catch (error) {
+      console.error(error);
+      errorMessage.value = "An error occurred. Please try again.";
+      displayError.value = true;
+      return;
+    }
+  }
+
+  // CheckIn if there is a lecture
+  async function checkIn() {
+    // If there is no lecture and the modal is not shown, show the modal
+    if (!lecture.value && !showModal.value) {
+      showModal.value = true;
+      return;
+    }
+    try {
       const { data: checkIn } = await $fetch("/api/check-in", {
         method: "PUT",
         body: JSON.stringify({
@@ -117,30 +170,6 @@
           userId: 1,
         }),
       });
-
-      console.log(checkIn);
-    } catch (error) {
-      console.error(error);
-    }
-    showModal.value = false;
-  }
-
-  async function checkIn() {
-    // If there is no lecture and the modal is not shown, show the modal
-    if (!lecture.value || !showModal.value) {
-      showModal.value = true;
-      return;
-    }
-
-    try {
-      const { data: checkIn } = await $fetch("/api/check-in", {
-        method: "PUT",
-        body: JSON.stringify({
-          lectureId: lecture.id,
-          userId: env("DEMO_USER_ID"),
-        }),
-      });
-      console.log(checkIn);
     } catch (error) {
       console.error(error);
     }
