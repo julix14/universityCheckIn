@@ -1,7 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient({
-  log: ["query", "info", "warn", "error"],
-});
+const prisma = new PrismaClient();
 export default defineEventHandler(async (event) => {
   const { lectureName, startTime, groupId } = await readBody(event);
   try {

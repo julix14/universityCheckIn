@@ -34,8 +34,8 @@ model CheckIn {
   id        Int      @id @default(autoincrement())
   userId    Int
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  latitude  Float    @db.DoublePrecision
-  longitude Float    @db.DoublePrecision
+  latitude  Float?   @db.DoublePrecision
+  longitude Float?   @db.DoublePrecision
   createdAt DateTime @default(now()) @db.Timestamptz()
   updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz()
   valid     Boolean  @default(false)

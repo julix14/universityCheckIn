@@ -99,7 +99,7 @@
     const timestamp = currentDate;
 
     try {
-      const { data } = await $fetch("/api/lecture", {
+      const { data: lectureFromDB } = await $fetch("/api/lecture", {
         method: "PUT",
         body: JSON.stringify({
           lectureName: lectureName.value,
@@ -107,28 +107,49 @@
           groupId: 1,
         }),
       });
-      console.log(data);
-      lecture.value = {
-        name: lectureName.value,
-        time: startTime.value,
-      };
+      console.log(lectureFromDB);
+      lecture.value = lectureFromDB;
+
+      const { data: checkIn } = await $fetch("/api/check-in", {
+        method: "PUT",
+        body: JSON.stringify({
+          lectureId: lecture.id,
+          userId: 1,
+        }),
+      });
+
+      console.log(checkIn);
     } catch (error) {
       console.error(error);
     }
+    showModal.value = false;
   }
 
-  function checkIn() {
+  async function checkIn() {
     // If there is no lecture and the modal is not shown, show the modal
     if (!lecture.value || !showModal.value) {
       showModal.value = true;
       return;
     }
-    showModal.value = false;
+
+    try {
+      const { data: checkIn } = await $fetch("/api/check-in", {
+        method: "PUT",
+        body: JSON.stringify({
+          lectureId: lecture.id,
+          userId: env("DEMO_USER_ID"),
+        }),
+      });
+      console.log(checkIn);
+    } catch (error) {
+      console.error(error);
+    }
+
     lecture.value = {
       name: lectureName.value,
       time: startTime.value,
     };
-    alreadyCheckedIn.value = true;
+
     alreadyCheckedIn.value = true;
   }
 </script>
