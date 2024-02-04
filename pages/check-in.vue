@@ -20,7 +20,7 @@
         class="flex items-center px-4 py-2 text-white rounded-md bg-xublack hover:bg-slate-800 gap-x-2"
         @click="checkIn"
         v-show="!alreadyCheckedIn">
-        <span class="material-symbols-outlined"> done </span>
+        <span class="material-symbols-outlined">done</span>
         Check-In
       </button>
       <SuccessCheck v-show="alreadyCheckedIn" />
@@ -56,8 +56,8 @@
                 class="flex items-center px-4 py-2 mx-auto my-2 text-white rounded-md bg-xublack hover:bg-slate-800 gap-x-2"
                 @click="createLectureAndCheckIn"
                 v-show="!alreadyCheckedIn">
-                <span class="material-symbols-outlined"> done </span>
-                Check-In
+                <span class="material-symbols-outlined">done</span>
+                {{ lecture ? "Check-In" : "Create Lecture and Check-In" }}
               </button>
             </form>
           </div>
@@ -65,7 +65,7 @@
         <div
           class="absolute top-0 right-0 p-2 cursor-pointer"
           @click="showModal = false">
-          <span class="material-symbols-outlined"> close </span>
+          <span class="material-symbols-outlined">close</span>
         </div>
       </div>
     </div>
@@ -86,24 +86,32 @@
   const displayError = ref(false);
   const errorMessage = ref("Please fill in all fields.");
 
-  // Check if there is a lecture for today and this group
-  const lectureDateObj = new Date();
-  const lectureDateStr = lectureDateObj.toISOString().split("T")[0];
-  const { data } = await useFetch("/api/lecture", {
-    method: "GET",
-    query: {
-      lectureDate: lectureDateStr,
-      groupId: 1, //TODO: get the group id from the user
-    },
-  });
+  // Fetch lecture data
+  async function fetchLectureData() {
+    const lectureDateObj = new Date();
+    const lectureDateStr = lectureDateObj.toISOString().split("T")[0];
+    const { data } = await useFetch("/api/lecture", {
+      method: "GET",
+      query: {
+        lectureDate: lectureDateStr,
+        groupId: 1, //TODO: get the group id from the user
+      },
+    });
 
-  const lectureFromDB = data.value.body;
-  if (lectureFromDB) {
-    lecture.value = await JSON.parse(lectureFromDB);
-    lecture.value.startTime = new Date(
-      lecture.value.startTime
-    ).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+    return data.value.body ? await JSON.parse(data.value.body) : null;
   }
+
+  // Initialize lecture data
+  async function init() {
+    const lectureFromDB = await fetchLectureData();
+    if (lectureFromDB) {
+      lecture.value = lectureFromDB;
+      lecture.value.startTime = new Date(
+        lecture.value.startTime
+      ).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+    }
+  }
+  init();
 
   // CheckIn if there is no lecture
   async function createLectureAndCheckIn() {
@@ -176,11 +184,6 @@
     } catch (error) {
       console.error(error);
     }
-
-    lecture.value = {
-      name: lectureName.value,
-      time: startTime.value,
-    };
 
     alreadyCheckedIn.value = true;
   }
