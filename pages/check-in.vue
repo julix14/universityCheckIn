@@ -73,13 +73,16 @@
 </template>
 
 <script setup>
+  // General Values
   const alreadyCheckedIn = ref(false);
   const showModal = ref(false);
   const lecture = ref(null);
 
+  // Modal Values
   const lectureName = ref("");
   const startTime = ref("");
 
+  // Error handling
   const displayError = ref(false);
   const errorMessage = ref("Please fill in all fields.");
 
