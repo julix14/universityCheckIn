@@ -1,0 +1,2 @@
+- [ ] User & Group ID austauschen
+- [ ] Case: User ist schon eingeloggt (Get "alreadyCheckedIn" from Database) (Maybe mit einer View in der DB)
