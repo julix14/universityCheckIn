@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client/edge";
+import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 export default defineEventHandler(async (event) => {
   const { lectureName, startTime, groupId } = await readBody(event);
@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
         groupId: groupId,
       },
     });
-
+    console.log(startTime);
     return {
       statusCode: 200,
       body: JSON.stringify(lectureFromDB),
