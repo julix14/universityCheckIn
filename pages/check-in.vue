@@ -98,6 +98,9 @@
       },
     });
 
+    if (data.value.statusCode === 404) {
+      return;
+    }
     return data.value.body ? await JSON.parse(data.value.body) : null;
   }
 

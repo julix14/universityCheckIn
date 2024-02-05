@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["views"]
 }
 
 datasource db {
@@ -12,43 +13,63 @@ model User {
   id        Int       @id @default(autoincrement())
   name      String?
   password  String?
-  createdAt DateTime  @default(now()) @db.Timestamptz()
-  updatedAt DateTime  @default(now()) @updatedAt @db.Timestamptz()
+  createdAt DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+  groupId   Int?
   CheckIn   CheckIn[]
   Group     Group?    @relation(fields: [groupId], references: [id])
-  groupId   Int?
 }
 
 model Lecture {
   id        Int       @id @default(autoincrement())
   name      String
-  createdAt DateTime  @default(now()) @db.Timestamptz()
-  updatedAt DateTime  @default(now()) @updatedAt @db.Timestamptz()
+  createdAt DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+  groupId   Int?
+  startTime DateTime  @db.Timestamptz(6)
   CheckIn   CheckIn[]
   Group     Group?    @relation(fields: [groupId], references: [id])
-  groupId   Int?
-  startTime DateTime  @db.Timestamptz()
 }
 
 model CheckIn {
   id        Int      @id @default(autoincrement())
   userId    Int
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  latitude  Float?   @db.DoublePrecision
-  longitude Float?   @db.DoublePrecision
-  createdAt DateTime @default(now()) @db.Timestamptz()
-  updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz()
+  latitude  Float?
+  longitude Float?
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(6)
   valid     Boolean  @default(false)
   lectureId Int?
   lecture   Lecture? @relation(fields: [lectureId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Group {
   id          Int       @id @default(autoincrement())
   name        String
   description String?
-  createdAt   DateTime  @default(now()) @db.Timestamptz()
-  updatedAt   DateTime  @default(now()) @updatedAt @db.Timestamptz()
-  members     User[]
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
   lectures    Lecture[]
+  members     User[]
+}
+
+view lecture_by_date {
+  id        String    @unique @db.Uuid
+  lectureId Int?
+  name      String?
+  groupId   Int?
+  date      String?
+  starttime DateTime? @db.Timestamptz(6)
+}
+
+view checkin_by_date {
+  id        String    @unique @db.Uuid
+  checkInId Int?
+  userId    Int?
+  latitude  Float?
+  longitude Float?
+  name      String?
+  date      String?
+  starttime DateTime? @db.Timestamptz(6)
 }
