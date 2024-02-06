@@ -4,10 +4,10 @@ const prisma = new PrismaClient();
 export default defineEventHandler(async (event) => {
   const { userId, lectureId, latitude, longitude } = await readBody(event);
   try {
-    const checkInFromDB = await prisma.checkIn.create({
+    const checkInFromDB = await prisma.check_in.create({
       data: {
-        userId: userId,
-        lectureId: lectureId,
+        user_id: userId,
+        lecture_id: lectureId,
         latitude: latitude,
         longitude: longitude,
       },

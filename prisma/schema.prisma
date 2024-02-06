@@ -9,67 +9,69 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-model User {
-  id        Int       @id @default(autoincrement())
-  name      String?
-  password  String?
-  createdAt DateTime  @default(now()) @db.Timestamptz(6)
-  updatedAt DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
-  groupId   Int?
-  CheckIn   CheckIn[]
-  Group     Group?    @relation(fields: [groupId], references: [id])
+model check_in {
+  id         Int      @id(map: "CheckIn_pkey") @default(autoincrement())
+  user_id    Int
+  latitude   Float?
+  longitude  Float?
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+  valid      Boolean  @default(false)
+  lecture_id Int?
+  lecture    lecture? @relation(fields: [lecture_id], references: [id])
+  user       user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
-model Lecture {
-  id        Int       @id @default(autoincrement())
-  name      String
-  createdAt DateTime  @default(now()) @db.Timestamptz(6)
-  updatedAt DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
-  groupId   Int?
-  startTime DateTime  @db.Timestamptz(6)
-  CheckIn   CheckIn[]
-  Group     Group?    @relation(fields: [groupId], references: [id])
-}
-
-model CheckIn {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  latitude  Float?
-  longitude Float?
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(6)
-  valid     Boolean  @default(false)
-  lectureId Int?
-  lecture   Lecture? @relation(fields: [lectureId], references: [id])
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model Group {
-  id          Int       @id @default(autoincrement())
+model group {
+  id          Int       @id(map: "Group_pkey") @default(autoincrement())
   name        String
   description String?
-  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
-  updatedAt   DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
-  lectures    Lecture[]
-  members     User[]
+  created_at  DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime  @default(now()) @db.Timestamptz(6)
+  lecture     lecture[]
+  user        user[]
+}
+
+model lecture {
+  id         Int        @id(map: "Lecture_pkey") @default(autoincrement())
+  name       String
+  created_at DateTime   @default(now()) @db.Timestamptz(6)
+  updated_at DateTime   @default(now()) @db.Timestamptz(6)
+  group_id   Int?
+  start_time DateTime   @db.Timestamptz(6)
+  check_in   check_in[]
+  group      group?     @relation(fields: [group_id], references: [id])
+}
+
+model user {
+  id         Int        @id(map: "User_pkey") @default(autoincrement())
+  name       String?
+  password   String?
+  created_at DateTime   @default(now()) @db.Timestamptz(6)
+  updated_at DateTime   @default(now()) @db.Timestamptz(6)
+  group_id   Int?
+  check_in   check_in[]
+  group      group?     @relation(fields: [group_id], references: [id])
 }
 
 view lecture_by_date {
-  id        String    @unique @db.Uuid
-  lectureId Int?
-  name      String?
-  groupId   Int?
-  date      String?
-  starttime DateTime? @db.Timestamptz(6)
+  row_id     String    @id @db.Uuid
+  lecture_id Int?
+  name       String?
+  group_id   Int?
+  date       String?
+  starttime  DateTime? @db.Timestamptz(6)
 }
 
-view checkin_by_date {
-  id        String    @unique @db.Uuid
-  checkInId Int?
-  userId    Int?
-  latitude  Float?
-  longitude Float?
-  name      String?
-  date      String?
-  starttime DateTime? @db.Timestamptz(6)
+/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+view check_in_by_date {
+  row_id      String    @id @db.Uuid
+  check_in_id Int?
+  user_id     Int?
+  latitude    Float?
+  longitude   Float?
+  name        String?
+  group_id    Int?
+  date        String?
+  start_time  DateTime? @db.Timestamptz(6)
 }

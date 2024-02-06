@@ -5,9 +5,9 @@ export default defineEventHandler(async (event) => {
   const { groupId, userId, lectureDate } = getQuery(event);
 
   if (groupId && userId && lectureDate) {
-    const checkInFromDB = await prisma.checkIn.findFirst({
+    const checkInFromDB = await prisma.check_in_by_date.findFirst({
       where: {
-        userId: Number(userId),
+        user_id: Number(userId),
       },
     });
     if (!checkInFromDB) {

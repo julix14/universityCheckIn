@@ -1,9 +1,9 @@
 SELECT
-  gen_random_uuid() AS id,
-  "Lecture".id AS "lectureId",
-  "Lecture".name,
-  "Lecture"."groupId",
-  "substring"(("Lecture"."startTime") :: text, 0, 11) AS date,
-  "Lecture"."startTime" AS starttime
+  gen_random_uuid() AS row_id,
+  lecture.id AS lecture_id,
+  lecture.name,
+  lecture.group_id,
+  "substring"((lecture.start_time) :: text, 0, 11) AS date,
+  lecture.start_time AS starttime
 FROM
-  "Lecture";
+  lecture;
