@@ -4,6 +4,6 @@ SELECT
   lecture.name,
   lecture.group_id,
   "substring"((lecture.start_time) :: text, 0, 11) AS date,
-  lecture.start_time AS starttime
+  lecture.start_time
 FROM
   lecture;

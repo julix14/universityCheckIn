@@ -7,7 +7,7 @@
       <p v-show="alreadyCheckedIn">You have checked in for today!</p>
       <div v-if="lecture">
         <p>Class: {{ lecture.name }}</p>
-        <p>Starting at: {{ lecture.startTime }}</p>
+        <p>Starting at: {{ lecture.start_time }}</p>
       </div>
       <div v-else>
         <p>
@@ -109,8 +109,8 @@
     const lectureFromDB = await fetchLectureData();
     if (lectureFromDB) {
       lecture.value = lectureFromDB;
-      lecture.value.startTime = new Date(
-        lecture.value.startTime
+      lecture.value.start_time = new Date(
+        lecture.value.start_time
       ).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
     }
   }
@@ -145,8 +145,8 @@
       lecture.value = await JSON.parse(lectureFromDB);
 
       // Format the date to a readable string
-      lecture.value.startTime = new Date(
-        lecture.value.startTime
+      lecture.value.start_time = new Date(
+        lecture.value.start_time
       ).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
 
       // Check in the user
