@@ -12,16 +12,25 @@
       <div v-else>
         <p>
           No lecture created yet. <br />
-          Check in and create one.
+          Create one and check in!
         </p>
       </div>
       <button
+        v-if="!loading"
         type="button"
         class="flex items-center px-4 py-2 text-white rounded-md bg-xublack hover:bg-slate-800 gap-x-2"
         @click="checkIn"
         v-show="!alreadyCheckedIn">
         <span class="material-symbols-outlined">done</span>
         Check-In
+      </button>
+      <button
+        v-else
+        type="button"
+        class="flex items-center px-4 py-2 mx-auto my-2 text-white rounded-md bg-gray-500 cursor-not-allowed gap-x-2"
+        disabled>
+        <span class="material-symbols-outlined">autorenew</span>
+        Loading...
       </button>
       <SuccessCheck v-show="alreadyCheckedIn" />
     </div>
@@ -52,12 +61,21 @@
                 {{ errorMessage }}
               </p>
               <button
+                v-if="!loading"
                 type="button"
                 class="flex items-center px-4 py-2 mx-auto my-2 text-white rounded-md bg-xublack hover:bg-slate-800 gap-x-2"
                 @click="createLectureAndCheckIn"
                 v-show="!alreadyCheckedIn">
                 <span class="material-symbols-outlined">done</span>
                 {{ lecture ? "Check-In" : "Create Lecture and Check-In" }}
+              </button>
+              <button
+                v-else
+                type="button"
+                class="flex items-center px-4 py-2 mx-auto my-2 text-white rounded-md bg-gray-500 cursor-not-allowed gap-x-2"
+                disabled>
+                <span class="material-symbols-outlined">autorenew</span>
+                Loading...
               </button>
             </form>
           </div>
@@ -77,6 +95,7 @@
   const alreadyCheckedIn = ref(false);
   const showModal = ref(false);
   const lecture = ref(null);
+  const loading = ref(true);
 
   // Modal Values
   const lectureName = ref("");
@@ -134,11 +153,13 @@
       .catch((error) => {
         console.error(error);
       });
+    loading.value = false;
   }
   init();
 
   // CheckIn if there is no lecture
   async function createLectureAndCheckIn() {
+    loading.value = true;
     if (!lectureName.value || !startTime.value) {
       displayError.value = true;
       errorMessage.value = "Please fill in all fields.";
@@ -151,7 +172,6 @@
     const [hours, minutes] = startTime.value.split(":").map(Number);
     currentDate.setHours(hours, minutes, 0, 0);
     const timestamp = currentDate;
-
     try {
       const { body: lectureFromDB } = await $fetch("/api/lecture", {
         method: "PUT",
@@ -187,6 +207,8 @@
       errorMessage.value = "An error occurred. Please try again.";
       displayError.value = true;
       return;
+    } finally {
+      loading.value = false;
     }
   }
 
@@ -197,6 +219,7 @@
       showModal.value = true;
       return;
     }
+    loading.value = true;
     try {
       const { data: checkIn } = await $fetch("/api/check-in", {
         method: "PUT",
@@ -210,5 +233,6 @@
     }
 
     alreadyCheckedIn.value = true;
+    loading.value = false;
   }
 </script>
