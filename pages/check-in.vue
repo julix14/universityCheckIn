@@ -15,23 +15,11 @@
           Create one and check in!
         </p>
       </div>
-      <button
-        v-if="!loading"
-        type="button"
-        class="flex items-center px-4 py-2 text-white rounded-md bg-xublack hover:bg-slate-800 gap-x-2"
+      <LoadingButton
+        v-show="!alreadyCheckedIn"
         @click="checkIn"
-        v-show="!alreadyCheckedIn">
-        <span class="material-symbols-outlined">done</span>
-        Check-In
-      </button>
-      <button
-        v-else
-        type="button"
-        class="flex items-center px-4 py-2 mx-auto my-2 text-white rounded-md bg-gray-500 cursor-not-allowed gap-x-2"
-        disabled>
-        <span class="material-symbols-outlined animate-spin">autorenew</span>
-        Loading...
-      </button>
+        text="Check-In"
+        :loading="loading" />
       <SuccessCheck v-show="alreadyCheckedIn" />
     </div>
 
@@ -54,31 +42,18 @@
                 v-model="startTime"
                 type="time"
                 class="p-2 my-2 border rounded-md"
-                placeholder="Time" />
+                placeholder="Time"
+                @keyup.enter="createLectureAndCheckIn" />
               <p
                 v-if="displayError"
                 class="text-red-600">
                 {{ errorMessage }}
               </p>
-              <button
-                v-if="!loading"
-                type="button"
-                class="flex items-center px-4 py-2 mx-auto my-2 text-white rounded-md bg-xublack hover:bg-slate-800 gap-x-2"
-                @click="createLectureAndCheckIn"
-                v-show="!alreadyCheckedIn">
-                <span class="material-symbols-outlined">done</span>
-                {{ lecture ? "Check-In" : "Create Lecture and Check-In" }}
-              </button>
-              <button
-                v-else
-                type="button"
-                class="flex items-center px-4 py-2 mx-auto my-2 text-white rounded-md bg-gray-500 cursor-not-allowed gap-x-2"
-                disabled>
-                <span class="material-symbols-outlined animate-spin"
-                  >autorenew</span
-                >
-                Loading...
-              </button>
+              <LoadingButton
+                v-show="!alreadyCheckedIn"
+                :loading="loading"
+                :text="lecture ? 'Check-In' : 'Create Lecture and Check-In'"
+                @click="createLectureAndCheckIn" />
             </form>
           </div>
         </div>
@@ -151,11 +126,11 @@
           ).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
         }
         alreadyCheckedIn.value = checkedIn;
+        loading.value = false;
       })
       .catch((error) => {
         console.error(error);
       });
-    loading.value = false;
   }
   init();
 
@@ -165,6 +140,7 @@
     if (!lectureName.value || !startTime.value) {
       displayError.value = true;
       errorMessage.value = "Please fill in all fields.";
+      loading.value = false;
       return;
     }
     displayError.value = false;
