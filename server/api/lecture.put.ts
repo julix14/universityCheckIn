@@ -6,11 +6,10 @@ export default defineEventHandler(async (event) => {
     const lectureFromDB = await prisma.lecture.create({
       data: {
         name: lectureName,
-        startTime: startTime,
-        groupId: groupId,
+        start_time: startTime,
+        group_id: Number(groupId),
       },
     });
-
     return {
       statusCode: 200,
       body: JSON.stringify(lectureFromDB),
