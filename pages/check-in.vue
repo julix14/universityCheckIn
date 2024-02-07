@@ -104,15 +104,36 @@
     return data.value.body ? await JSON.parse(data.value.body) : null;
   }
 
+  async function checkIfCheckedIn() {
+    const lectureDateObj = new Date();
+    const lectureDateStr = lectureDateObj.toISOString().split("T")[0];
+    const { data } = await useFetch("/api/check-in", {
+      method: "GET",
+      query: {
+        lectureDate: lectureDateStr,
+        userId: 1, //TODO: get the user id from the user
+        groupId: 1, //TODO: get the group id from the user
+      },
+    });
+
+    return data.value.statusCode !== 404;
+  }
+
   // Initialize lecture data
   async function init() {
-    const lectureFromDB = await fetchLectureData();
-    if (lectureFromDB) {
-      lecture.value = lectureFromDB;
-      lecture.value.start_time = new Date(
-        lecture.value.start_time
-      ).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
-    }
+    Promise.all([fetchLectureData(), checkIfCheckedIn()])
+      .then(([lectureFromDB, checkedIn]) => {
+        if (lectureFromDB) {
+          lecture.value = lectureFromDB;
+          lecture.value.start_time = new Date(
+            lecture.value.start_time
+          ).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+        }
+        alreadyCheckedIn.value = checkedIn;
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   }
   init();
 

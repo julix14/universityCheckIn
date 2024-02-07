@@ -8,6 +8,8 @@ export default defineEventHandler(async (event) => {
     const checkInFromDB = await prisma.check_in_by_date.findFirst({
       where: {
         user_id: Number(userId),
+        group_id: Number(groupId),
+        date: String(lectureDate),
       },
     });
     if (!checkInFromDB) {
@@ -21,4 +23,10 @@ export default defineEventHandler(async (event) => {
       body: JSON.stringify(checkInFromDB),
     };
   }
+  return {
+    statusCode: 400,
+    body: JSON.stringify({
+      message: "Please provide at least a groupId, userId and lectureDate.",
+    }),
+  };
 });
