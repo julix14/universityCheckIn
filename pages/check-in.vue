@@ -29,7 +29,7 @@
         type="button"
         class="flex items-center px-4 py-2 mx-auto my-2 text-white rounded-md bg-gray-500 cursor-not-allowed gap-x-2"
         disabled>
-        <span class="material-symbols-outlined">autorenew</span>
+        <span class="material-symbols-outlined animate-spin">autorenew</span>
         Loading...
       </button>
       <SuccessCheck v-show="alreadyCheckedIn" />
@@ -74,7 +74,9 @@
                 type="button"
                 class="flex items-center px-4 py-2 mx-auto my-2 text-white rounded-md bg-gray-500 cursor-not-allowed gap-x-2"
                 disabled>
-                <span class="material-symbols-outlined">autorenew</span>
+                <span class="material-symbols-outlined animate-spin"
+                  >autorenew</span
+                >
                 Loading...
               </button>
             </form>
