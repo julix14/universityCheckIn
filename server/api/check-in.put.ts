@@ -3,6 +3,8 @@ const prisma = new PrismaClient();
 
 export default defineEventHandler(async (event) => {
   const { userId, lectureId, latitude, longitude } = await readBody(event);
+  console.log(userId, lectureId, latitude, longitude);
+  console.log(await readBody(event), "HIHI", event._requestBody);
   try {
     const checkInFromDB = await prisma.check_in.create({
       data: {

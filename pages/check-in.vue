@@ -1,27 +1,29 @@
 <template>
   <div class="flex items-center justify-center">
-    <div
-      class="flex flex-col items-center p-5 m-10 border rounded-md border-1 gap-y-2 max-w-fit">
-      <h1 class="font-bold">XU University Check-In</h1>
-      <p v-show="!alreadyCheckedIn">Check in for today!</p>
-      <p v-show="alreadyCheckedIn">You have checked in for today!</p>
-      <div v-if="lecture">
-        <p>Class: {{ lecture.name }}</p>
-        <p>Starting at: {{ lecture.start_time }}</p>
+    <client-only>
+      <div
+        class="flex flex-col items-center p-5 m-10 border rounded-md border-1 gap-y-2 max-w-fit">
+        <h1 class="font-bold">XU University Check-In</h1>
+        <p v-show="!alreadyCheckedIn">Check in for today!</p>
+        <p v-show="alreadyCheckedIn">You have checked in for today!</p>
+        <div v-if="lecture">
+          <p>Class: {{ lecture.name }}</p>
+          <p>Starting at: {{ lecture.start_time }}</p>
+        </div>
+        <div v-else>
+          <p>
+            No lecture created yet. <br />
+            Create one and check in!
+          </p>
+        </div>
+        <LoadingButton
+          v-show="!alreadyCheckedIn"
+          @click="checkIn"
+          text="Check-In"
+          :loading="loading" />
+        <SuccessCheck v-show="alreadyCheckedIn" />
       </div>
-      <div v-else>
-        <p>
-          No lecture created yet. <br />
-          Create one and check in!
-        </p>
-      </div>
-      <LoadingButton
-        v-show="!alreadyCheckedIn"
-        @click="checkIn"
-        text="Check-In"
-        :loading="loading" />
-      <SuccessCheck v-show="alreadyCheckedIn" />
-    </div>
+    </client-only>
 
     <!-- Create Lecture Modal-->
     <div
@@ -134,6 +136,76 @@
   }
   init();
 
+  // CheckIn if there is a lecture
+
+  // Check-in function
+  async function checkIn() {
+    loading.value = true;
+    console.log("Checkin start");
+    // If there is no lecture and the modal is not shown, show the modal
+    if (!lecture.value && !showModal.value) {
+      showModal.value = true;
+      loading.value = false;
+      return;
+    }
+    console.log("Before Geolocation");
+    // Check if geolocation is supported
+    if ("geolocation" in navigator) {
+      console.log("Geolocation start");
+      try {
+        console.log("Before Position");
+        const position = getCurrentPosition();
+        console.log("After Position");
+        console.log("Before CheckIn w position");
+        await performCheckIn(
+          position.coords.latitude,
+          position.coords.longitude
+        );
+        console.log("After CheckIn w position");
+      } catch (error) {
+        console.error(error);
+      }
+    } else {
+      console.log("Before CheckIn w/o position");
+      await performCheckIn();
+      console.log("After CheckIn w/o position");
+    }
+    console.log("Checkin end");
+  }
+
+  // Get current position using geolocation API
+  function getCurrentPosition() {
+    return new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject);
+    });
+  }
+
+  // Perform check-in request
+  async function performCheckIn(latitude, longitude) {
+    try {
+      console.log(lecture.value);
+      const checkInData = {
+        lectureId: lecture.value.lecture_id,
+        userId: 1, // TODO: get the user id from the user
+      };
+
+      if (latitude && longitude) {
+        checkInData.latitude = latitude;
+        checkInData.longitude = longitude;
+      }
+
+      await $fetch("/api/check-in", {
+        method: "PUT",
+        body: JSON.stringify(checkInData),
+      });
+
+      alreadyCheckedIn.value = true;
+      loading.value = false;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   // CheckIn if there is no lecture
   async function createLectureAndCheckIn() {
     loading.value = true;
@@ -168,15 +240,7 @@
         lecture.value.start_time
       ).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
 
-      // Check in the user
-      const { body: checkIn } = await $fetch("/api/check-in", {
-        method: "PUT",
-        body: JSON.stringify({
-          lectureId: lecture.value.id,
-          userId: 1, //TODO: get the user id from the user
-          //TODO: Add Location later
-        }),
-      });
+      await checkIn();
 
       showModal.value = false;
       alreadyCheckedIn.value = true;
@@ -188,29 +252,5 @@
     } finally {
       loading.value = false;
     }
-  }
-
-  // CheckIn if there is a lecture
-  async function checkIn() {
-    // If there is no lecture and the modal is not shown, show the modal
-    if (!lecture.value && !showModal.value) {
-      showModal.value = true;
-      return;
-    }
-    loading.value = true;
-    try {
-      const { data: checkIn } = await $fetch("/api/check-in", {
-        method: "PUT",
-        body: JSON.stringify({
-          lectureId: lecture.id,
-          userId: 1,
-        }),
-      });
-    } catch (error) {
-      console.error(error);
-    }
-
-    alreadyCheckedIn.value = true;
-    loading.value = false;
   }
 </script>
