@@ -148,29 +148,22 @@
       loading.value = false;
       return;
     }
-    console.log("Before Geolocation");
     // Check if geolocation is supported
     if ("geolocation" in navigator) {
-      console.log("Geolocation start");
       try {
-        console.log("Before Position");
-        const position = getCurrentPosition();
-        console.log("After Position");
-        console.log("Before CheckIn w position");
+        const position = await getCurrentPosition();
         await performCheckIn(
           position.coords.latitude,
           position.coords.longitude
         );
-        console.log("After CheckIn w position");
       } catch (error) {
         console.error(error);
       }
     } else {
-      console.log("Before CheckIn w/o position");
       await performCheckIn();
-      console.log("After CheckIn w/o position");
     }
-    console.log("Checkin end");
+    alreadyCheckedIn.value = true;
+    loading.value = false;
   }
 
   // Get current position using geolocation API
@@ -183,7 +176,6 @@
   // Perform check-in request
   async function performCheckIn(latitude, longitude) {
     try {
-      console.log(lecture.value);
       const checkInData = {
         lectureId: lecture.value.lecture_id,
         userId: 1, // TODO: get the user id from the user
@@ -198,9 +190,6 @@
         method: "PUT",
         body: JSON.stringify(checkInData),
       });
-
-      alreadyCheckedIn.value = true;
-      loading.value = false;
     } catch (error) {
       console.error(error);
     }
